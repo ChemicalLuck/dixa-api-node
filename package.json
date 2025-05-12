@@ -1,7 +1,10 @@
 {
-  "name": "dixa-api-node",
+  "name": "@chemicalluck/dixa-api-node",
   "version": "1.0.0",
-  "description": "",
+  "description": "Dixa API Node.js Client",
+  "publishConfig": {
+    "access": "public"
+  },
   "homepage": "https://github.com/ffs-beauty/dixa-api-node#readme",
   "bugs": {
     "url": "https://github.com/ffs-beauty/dixa-api-node/issues"
