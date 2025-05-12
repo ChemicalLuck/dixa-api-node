@@ -1,0 +1,10 @@
+export { AgentResource as AgentsResource } from "./agents";
+export { AnalyticsResource } from "./analytics";
+export { ContactEndpointsResource } from "./contactEndpoints";
+export { ConversationsResource } from "./conversations";
+export { CustomAttributesResource } from "./customAttributes";
+export { EndUsersResource } from "./endUsers";
+export { QueuesResource } from "./queues";
+export { TagsResource } from "./tags";
+export { TeamsResource } from "./teams";
+export { WebhooksResource } from "./webhooks";
