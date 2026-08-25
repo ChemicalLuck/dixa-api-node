@@ -32,7 +32,7 @@ export class TeamsResource extends DixaResource {
   }
 
   async delete(teamId: string): Promise<void> {
-    this._delete(this.buildUrl(`/${teamId}`));
+    return this._delete(this.buildUrl(`/${teamId}`));
   }
 
   async get(teamId: string): Promise<TeamWithName> {
@@ -56,6 +56,6 @@ export class TeamsResource extends DixaResource {
     teamId: string,
     body: TeamRemoveMembersBody,
   ): Promise<void> {
-    this._delete(this.buildUrl(`/${teamId}/agents`));
+    return this._delete(this.buildUrl(`/${teamId}/agents`));
   }
 }

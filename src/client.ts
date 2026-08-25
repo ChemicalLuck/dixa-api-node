@@ -88,8 +88,8 @@ export class DixaClient {
     return this.handleRequest<T>("PUT", url, { data: payload });
   }
 
-  async delete(url: string): Promise<string> {
-    return this.handleRequest<string>("DELETE", url, {});
+  async delete<T = void>(url: string): Promise<T> {
+    return this.handleRequest<T>("DELETE", url, {});
   }
 
   async patch<T>(url: string, payload?: unknown): Promise<T> {

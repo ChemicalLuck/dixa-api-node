@@ -27,8 +27,8 @@ abstract class DixaResource {
     return this.client.put(url, body);
   }
 
-  protected _delete(url: string): Promise<string> {
-    return this.client.delete(url);
+  protected _delete<T = void>(url: string): Promise<T> {
+    return this.client.delete<T>(url);
   }
 
   protected _patch<T>(url: string, body?: unknown): Promise<T> {

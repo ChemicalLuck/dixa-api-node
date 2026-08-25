@@ -250,7 +250,7 @@ export class ConversationsResource extends DixaResource {
   }
 
   async untag(conversationId: string, tagId: string): Promise<void> {
-    this._delete(this.buildUrl(`/${conversationId}/tags/${tagId}`));
+    return this._delete(this.buildUrl(`/${conversationId}/tags/${tagId}`));
   }
 
   async transfer(

@@ -37,7 +37,7 @@ export class WebhooksResource extends DixaResource {
   }
 
   async delete(webhookId: string): Promise<void> {
-    this.client.delete(this.buildUrl(`/${webhookId}`));
+    return this._delete(this.buildUrl(`/${webhookId}`));
   }
 
   async list(): Promise<WebhookSubscription[]> {
