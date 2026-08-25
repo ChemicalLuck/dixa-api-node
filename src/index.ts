@@ -1,4 +1,4 @@
-import { DixaClient } from "./client";
+import { DixaClient, DixaClientOptions } from "./client";
 import * as v1 from "./api/v1";
 
 class DixaV1 {
@@ -31,10 +31,16 @@ class Dixa {
   private client: DixaClient;
   v1: DixaV1;
 
-  constructor(accessToken: string) {
-    this.client = new DixaClient(accessToken);
+  constructor(accessToken: string, options?: DixaClientOptions) {
+    this.client = new DixaClient(accessToken, options);
     this.v1 = new DixaV1(this.client);
   }
 }
 
-export { Dixa };
+export { Dixa, DixaClient };
+export { DEFAULT_BASE_URL, DEFAULT_TIMEOUT_MS } from "./client";
+export type { DixaClientOptions, DixaLogger } from "./client";
+export { DEFAULT_RETRY_OPTIONS } from "./retry";
+export type { DixaRetryInfo, DixaRetryOptions } from "./retry";
+export { DixaApiError, isDixaApiError } from "./errors";
+export type { DixaApiErrorContext } from "./errors";

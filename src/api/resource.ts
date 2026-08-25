@@ -1,5 +1,9 @@
 import DixaClient from "../client";
 
+/**
+ * Dixa exposes a `beta` API alongside `v1`. No beta resource is implemented
+ * here yet, so every resource currently reports `v1`.
+ */
 export type DixaVersion = "v1" | "beta";
 
 abstract class DixaResource {
@@ -27,8 +31,8 @@ abstract class DixaResource {
     return this.client.put(url, body);
   }
 
-  protected _delete(url: string): Promise<string> {
-    return this.client.delete(url);
+  protected _delete<T = void>(url: string, body?: unknown): Promise<T> {
+    return this.client.delete<T>(url, body);
   }
 
   protected _patch<T>(url: string, body?: unknown): Promise<T> {

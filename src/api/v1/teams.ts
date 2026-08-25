@@ -24,7 +24,7 @@ export class TeamsResource extends DixaResource {
   }
 
   async addMembers(teamId: string, body: TeamAddMembersBody): Promise<void> {
-    return this.client.post(this.buildUrl(`/${teamId}/agents`), body);
+    return this._post(this.buildUrl(`/${teamId}/agents`), body);
   }
 
   async create(body: TeamCreateBody): Promise<TeamWithName> {
@@ -32,7 +32,7 @@ export class TeamsResource extends DixaResource {
   }
 
   async delete(teamId: string): Promise<void> {
-    this._delete(this.buildUrl(`/${teamId}`));
+    return this._delete(this.buildUrl(`/${teamId}`));
   }
 
   async get(teamId: string): Promise<TeamWithName> {
@@ -51,11 +51,10 @@ export class TeamsResource extends DixaResource {
     return this._paginate(this.buildUrl());
   }
 
-  /// TODO: delete does not handle body.
   async removeMembers(
     teamId: string,
     body: TeamRemoveMembersBody,
   ): Promise<void> {
-    this._delete(this.buildUrl(`/${teamId}/agents`));
+    return this._delete(this.buildUrl(`/${teamId}/agents`), body);
   }
 }

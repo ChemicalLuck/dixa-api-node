@@ -50,7 +50,7 @@ export class EndUsersResource extends DixaResource {
   }
 
   async anonymize(endUserId: string): Promise<AnonymizationRequest> {
-    return this.client.patch(this.buildUrl(`/${endUserId}/anonymize`));
+    return this._patch(this.buildUrl(`/${endUserId}/anonymize`));
   }
 
   async create(body: EndUserCreateBody): Promise<EndUser> {
