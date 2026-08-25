@@ -24,7 +24,7 @@ export class TeamsResource extends DixaResource {
   }
 
   async addMembers(teamId: string, body: TeamAddMembersBody): Promise<void> {
-    return this.client.post(this.buildUrl(`/${teamId}/agents`), body);
+    return this._post(this.buildUrl(`/${teamId}/agents`), body);
   }
 
   async create(body: TeamCreateBody): Promise<TeamWithName> {

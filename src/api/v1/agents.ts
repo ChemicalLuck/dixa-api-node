@@ -67,7 +67,7 @@ export class AgentResource extends DixaResource {
     });
   }
 
-  async delete(agentId: string): Promise<string> {
+  async delete(agentId: string): Promise<void> {
     return this._delete(this.buildUrl(`/${agentId}`));
   }
 

@@ -59,8 +59,7 @@ export class QueuesResource extends DixaResource {
   }
 
   async get(queueId: string): Promise<Queue1> {
-    const data = await this._get<Queue1>(this.buildUrl(`/${queueId}`));
-    return data;
+    return this._get(this.buildUrl(`/${queueId}`));
   }
 
   async listAgents(queueId: string): Promise<QueueMember[]> {

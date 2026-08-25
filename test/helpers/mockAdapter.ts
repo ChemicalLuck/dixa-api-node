@@ -41,6 +41,8 @@ export interface RecordedRequest {
   params: unknown;
   /** Request body, JSON-parsed when possible. */
   body: unknown;
+  /** Timeout axios resolved for this request, in milliseconds. */
+  timeout?: number;
   headers: Record<string, unknown>;
 }
 
@@ -86,6 +88,7 @@ export function createMockAdapter(
       fullUrl: resolveUrl(config),
       params: config.params,
       body: parseBody(config.data),
+      timeout: config.timeout,
       headers: { ...(config.headers ?? {}) },
     });
 

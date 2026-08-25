@@ -1,5 +1,9 @@
 import DixaClient from "../client";
 
+/**
+ * Dixa exposes a `beta` API alongside `v1`. No beta resource is implemented
+ * here yet, so every resource currently reports `v1`.
+ */
 export type DixaVersion = "v1" | "beta";
 
 abstract class DixaResource {
