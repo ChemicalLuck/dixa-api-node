@@ -14,6 +14,32 @@ interface DixaListResponse<T> {
   };
 }
 
+/**
+ * Keys Dixa uses at the envelope level. A body is only unwrapped when it has a
+ * `data` key and nothing outside this set, so a resource that happens to have
+ * its own `data` field is never mangled.
+ */
+const ENVELOPE_KEYS = new Set(["data", "meta"]);
+
+/**
+ * Dixa replies `{ "data": ..., "meta": ... }`. Returns the payload inside the
+ * envelope, or the body untouched if it is not an envelope — some endpoints
+ * reply with no envelope at all, and a 204 has no body.
+ */
+function unwrapEnvelope<T>(body: unknown): T {
+  if (body === null || typeof body !== "object" || Array.isArray(body)) {
+    return body as T;
+  }
+
+  const record = body as Record<string, unknown>;
+  if (!Object.prototype.hasOwnProperty.call(record, "data")) return body as T;
+  for (const key of Object.keys(record)) {
+    if (!ENVELOPE_KEYS.has(key)) return body as T;
+  }
+
+  return record.data as T;
+}
+
 export const DEFAULT_BASE_URL = "https://dev.dixa.io";
 
 export interface DixaClientOptions {
@@ -109,8 +135,18 @@ export class DixaClient {
     url: string,
     config: AxiosRequestConfig,
   ): Promise<T> {
-    const response = await this.request<T>(method, url, config);
-    return response.data;
+    const response = await this.request<unknown>(method, url, config);
+
+    // 204 No Content, and any empty body, carry nothing to unwrap.
+    if (
+      response.status === 204 ||
+      response.data === "" ||
+      response.data === undefined
+    ) {
+      return undefined as T;
+    }
+
+    return unwrapEnvelope<T>(response.data);
   }
 }
 
