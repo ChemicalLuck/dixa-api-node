@@ -3,9 +3,10 @@ import { DixaClient } from "../src/client";
 import { DixaApiError, isDixaApiError, parseRetryAfter } from "../src/errors";
 import { createMockAdapter, MockReply } from "./helpers/mockAdapter";
 
+// Retry is off here so each test sees exactly one request; retry has its own suite.
 function clientFor(replies: MockReply | MockReply[]) {
   const { adapter, requests } = createMockAdapter(replies);
-  return { client: new DixaClient("token", { adapter }), requests };
+  return { client: new DixaClient("token", { adapter, retry: false }), requests };
 }
 
 async function captureError(promise: Promise<unknown>): Promise<DixaApiError> {

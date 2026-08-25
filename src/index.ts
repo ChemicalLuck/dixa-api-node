@@ -40,5 +40,7 @@ class Dixa {
 export { Dixa, DixaClient };
 export { DEFAULT_BASE_URL } from "./client";
 export type { DixaClientOptions } from "./client";
+export { DEFAULT_RETRY_OPTIONS } from "./retry";
+export type { DixaRetryInfo, DixaRetryOptions } from "./retry";
 export { DixaApiError, isDixaApiError } from "./errors";
 export type { DixaApiErrorContext } from "./errors";

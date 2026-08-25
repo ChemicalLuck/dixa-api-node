@@ -5,6 +5,13 @@ import axios, {
   AxiosResponse,
 } from "axios";
 import { DixaApiError } from "./errors";
+import {
+  computeRetryDelay,
+  DixaRetryOptions,
+  ResolvedRetryPolicy,
+  resolveRetryPolicy,
+  shouldRetry,
+} from "./retry";
 
 interface DixaListResponse<T> {
   data: T[];
@@ -48,6 +55,12 @@ export interface DixaClientOptions {
   /** Extra headers sent with every request. */
   headers?: Record<string, string>;
   /**
+   * Retry policy for 429, 5xx and transport failures. Pass `false` to disable,
+   * a number to set the retry count, or an object to tune it. See
+   * {@link DixaRetryOptions}.
+   */
+  retry?: DixaRetryOptions | boolean | number;
+  /**
    * Replaces the transport axios uses. Intended for tests and for hosts that
    * need to route requests themselves; leave unset for normal use.
    */
@@ -56,6 +69,7 @@ export interface DixaClientOptions {
 
 export class DixaClient {
   private client: AxiosInstance;
+  private retryPolicy: ResolvedRetryPolicy;
 
   constructor(
     apiKey: string,
@@ -74,6 +88,8 @@ export class DixaClient {
       },
       ...(options.adapter ? { adapter: options.adapter } : {}),
     });
+
+    this.retryPolicy = resolveRetryPolicy(options.retry);
   }
 
   async get<T>(url: string, query?: Record<string, any>): Promise<T> {
@@ -114,20 +130,46 @@ export class DixaClient {
   }
 
   /**
-   * Issues the request and translates any axios failure into a
-   * {@link DixaApiError} that carries the status, method, URL and Dixa error
-   * body. Returns the raw axios response so callers that need the response
-   * envelope (pagination) can read it.
+   * Issues the request, retrying per the configured policy, and translates any
+   * axios failure into a {@link DixaApiError} that carries the status, method,
+   * URL and Dixa error body. Returns the raw axios response so callers that
+   * need the response envelope (pagination) can read it.
    */
   private async request<T>(
     method: string,
     url: string,
     config: AxiosRequestConfig,
   ): Promise<AxiosResponse<T>> {
-    try {
-      return await this.client.request<T>({ ...config, method, url });
-    } catch (error) {
-      throw DixaApiError.from(error, { method, url });
+    const policy = this.retryPolicy;
+    let attempt = 0;
+
+    for (;;) {
+      try {
+        return await this.client.request<T>({ ...config, method, url });
+      } catch (rawError) {
+        const error = DixaApiError.from(rawError, { method, url });
+        const remaining = policy.retries - attempt;
+
+        if (remaining <= 0 || !shouldRetry(error, method, policy)) throw error;
+
+        attempt += 1;
+        const delay = computeRetryDelay(error, attempt, policy);
+
+        // Waiting out a very long Retry-After is worse than failing fast: the
+        // caller may be on a request path with its own deadline, and the error
+        // carries retryAfterMs so it can decide for itself.
+        if (delay.exceedsMaxRetryAfter) throw error;
+
+        policy.onRetry?.({
+          attempt,
+          remaining: remaining - 1,
+          delayMs: delay.delayMs,
+          fromRetryAfter: delay.fromRetryAfter,
+          error,
+        });
+
+        await policy.sleep(delay.delayMs);
+      }
     }
   }
 

@@ -5,7 +5,7 @@ import { createMockAdapter, MockReply } from "./helpers/mockAdapter";
 
 function dixaFor(replies: MockReply | MockReply[]) {
   const { adapter, requests } = createMockAdapter(replies);
-  return { dixa: new Dixa("token", { adapter }), requests };
+  return { dixa: new Dixa("token", { adapter, retry: false }), requests };
 }
 
 describe("DELETE request bodies", () => {
@@ -32,7 +32,7 @@ describe("DELETE request bodies", () => {
 
   it("sends no body when none is given", async () => {
     const { adapter, requests } = createMockAdapter({ status: 204, data: "" });
-    const client = new DixaClient("token", { adapter });
+    const client = new DixaClient("token", { adapter, retry: false });
 
     await client.delete("v1/webhooks/w-1");
 
@@ -41,7 +41,7 @@ describe("DELETE request bodies", () => {
 
   it("accepts a body on the low-level client", async () => {
     const { adapter, requests } = createMockAdapter({ data: { data: { ok: true } } });
-    const client = new DixaClient("token", { adapter });
+    const client = new DixaClient("token", { adapter, retry: false });
 
     await expect(
       client.delete<{ ok: boolean }>("v1/queues/q-1/members", { agentIds: ["a-1"] }),

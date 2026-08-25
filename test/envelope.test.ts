@@ -5,12 +5,12 @@ import { createMockAdapter, MockReply } from "./helpers/mockAdapter";
 
 function clientFor(replies: MockReply | MockReply[]) {
   const { adapter, requests } = createMockAdapter(replies);
-  return { client: new DixaClient("token", { adapter }), requests };
+  return { client: new DixaClient("token", { adapter, retry: false }), requests };
 }
 
 function dixaFor(replies: MockReply | MockReply[]) {
   const { adapter, requests } = createMockAdapter(replies);
-  return { dixa: new Dixa("token", { adapter }), requests };
+  return { dixa: new Dixa("token", { adapter, retry: false }), requests };
 }
 
 describe("envelope unwrapping", () => {

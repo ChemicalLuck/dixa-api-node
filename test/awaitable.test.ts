@@ -7,7 +7,7 @@ import { createMockAdapter, MockReply } from "./helpers/mockAdapter";
 
 function dixaFor(replies: MockReply | MockReply[]) {
   const { adapter, requests } = createMockAdapter(replies);
-  return { dixa: new Dixa("token", { adapter }), requests };
+  return { dixa: new Dixa("token", { adapter, retry: false }), requests };
 }
 
 const RESOURCE_DIR = path.join(import.meta.dirname, "..", "src", "api", "v1");
