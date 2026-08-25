@@ -1,4 +1,10 @@
-import axios, { AxiosInstance, AxiosResponse } from "axios";
+import axios, {
+  AxiosAdapter,
+  AxiosInstance,
+  AxiosRequestConfig,
+  AxiosResponse,
+} from "axios";
+import { DixaApiError } from "./errors";
 
 interface DixaListResponse<T> {
   data: T[];
@@ -8,64 +14,60 @@ interface DixaListResponse<T> {
   };
 }
 
-interface DixaResponse<T> {
-  data: T;
-}
+export const DEFAULT_BASE_URL = "https://dev.dixa.io";
 
-interface DixaDeleteResponse {
-  message?: string;
-}
-
-class DixaApiError extends Error {
-  constructor(
-    message: string,
-    public originalError?: unknown,
-  ) {
-    super(message);
-    this.name = "DixaApiError";
-  }
+export interface DixaClientOptions {
+  /** Defaults to `https://dev.dixa.io`. */
+  baseURL?: string;
+  /** Extra headers sent with every request. */
+  headers?: Record<string, string>;
+  /**
+   * Replaces the transport axios uses. Intended for tests and for hosts that
+   * need to route requests themselves; leave unset for normal use.
+   */
+  adapter?: AxiosAdapter;
 }
 
 export class DixaClient {
   private client: AxiosInstance;
 
-  constructor(apiKey: string, baseURL: string = "https://dev.dixa.io") {
+  constructor(
+    apiKey: string,
+    optionsOrBaseURL: DixaClientOptions | string = {},
+  ) {
+    const options: DixaClientOptions =
+      typeof optionsOrBaseURL === "string"
+        ? { baseURL: optionsOrBaseURL }
+        : optionsOrBaseURL;
+
     this.client = axios.create({
-      baseURL,
+      baseURL: options.baseURL ?? DEFAULT_BASE_URL,
       headers: {
         Authorization: apiKey,
+        ...options.headers,
       },
+      ...(options.adapter ? { adapter: options.adapter } : {}),
     });
   }
 
   async get<T>(url: string, query?: Record<string, any>): Promise<T> {
-    return this.handleRequest<T>(() =>
-      this.client.get<DixaResponse<T>>(url, { params: query }),
-    );
+    return this.handleRequest<T>("GET", url, { params: query });
   }
 
   async post<T>(url: string, payload?: unknown): Promise<T> {
-    return this.handleRequest<T>(() =>
-      this.client.post<DixaResponse<T>>(url, payload),
-    );
+    return this.handleRequest<T>("POST", url, { data: payload });
   }
 
   async put<T>(url: string, payload?: unknown): Promise<T> {
-    return this.handleRequest<T>(() =>
-      this.client.put<DixaResponse<T>>(url, payload),
-    );
+    return this.handleRequest<T>("PUT", url, { data: payload });
   }
 
   async delete(url: string): Promise<string> {
-    return this.handleRequest<string>(async () =>
-      this.client.delete<DixaDeleteResponse>(url),
-    );
+    return this.handleRequest<string>("DELETE", url, {});
   }
 
   async patch<T>(url: string, payload?: unknown): Promise<T> {
-    return this.handleRequest<T>(() =>
-      this.client.patch<DixaResponse<T>>(url, payload),
-    );
+    return this.handleRequest<T>("PATCH", url, { data: payload });
   }
 
   async paginate<T>(url: string, query?: Record<string, any>): Promise<T[]> {
@@ -73,34 +75,42 @@ export class DixaClient {
     let nextUrl: string = url;
 
     while (nextUrl) {
-      try {
-        const response = await this.client.get<DixaListResponse<T>>(nextUrl, {
-          params: query,
-        });
-        const responseData = response.data;
-        items.push(...responseData.data);
-        nextUrl = responseData.meta?.next ?? "";
-      } catch (error) {
-        // Optional: integrate telemetry/logging here
-        console.error("API Error:", error);
-        throw new DixaApiError("Request failed", error);
-      }
+      const response = await this.request<DixaListResponse<T>>("GET", nextUrl, {
+        params: query,
+      });
+      const responseData = response.data;
+      items.push(...responseData.data);
+      nextUrl = responseData.meta?.next ?? "";
     }
 
     return items;
   }
 
-  private async handleRequest<T>(
-    requestFn: () => Promise<AxiosResponse<any>>,
-  ): Promise<T> {
+  /**
+   * Issues the request and translates any axios failure into a
+   * {@link DixaApiError} that carries the status, method, URL and Dixa error
+   * body. Returns the raw axios response so callers that need the response
+   * envelope (pagination) can read it.
+   */
+  private async request<T>(
+    method: string,
+    url: string,
+    config: AxiosRequestConfig,
+  ): Promise<AxiosResponse<T>> {
     try {
-      const response = await requestFn();
-      return response.data;
+      return await this.client.request<T>({ ...config, method, url });
     } catch (error) {
-      // Optional: integrate telemetry/logging here
-      console.error("API Error:", error);
-      throw new DixaApiError("Request failed", error);
+      throw DixaApiError.from(error, { method, url });
     }
+  }
+
+  private async handleRequest<T>(
+    method: string,
+    url: string,
+    config: AxiosRequestConfig,
+  ): Promise<T> {
+    const response = await this.request<T>(method, url, config);
+    return response.data;
   }
 }
 
