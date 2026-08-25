@@ -88,8 +88,9 @@ export class DixaClient {
     return this.handleRequest<T>("PUT", url, { data: payload });
   }
 
-  async delete<T = void>(url: string): Promise<T> {
-    return this.handleRequest<T>("DELETE", url, {});
+  async delete<T = void>(url: string, payload?: unknown): Promise<T> {
+    // axios only sends a DELETE body when it is passed as config.data.
+    return this.handleRequest<T>("DELETE", url, { data: payload });
   }
 
   async patch<T>(url: string, payload?: unknown): Promise<T> {

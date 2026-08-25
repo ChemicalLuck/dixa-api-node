@@ -71,8 +71,7 @@ export class QueuesResource extends DixaResource {
     return this._paginate<Queue1>(this.buildUrl());
   }
 
-  // TODO: delete cannot handle payload
-  async remove(queueId: string, body: QueueRemoveBody): Promise<string> {
-    return this.client.delete(this.buildUrl(`/${queueId}/members`));
+  async remove(queueId: string, body: QueueRemoveBody): Promise<void> {
+    return this._delete(this.buildUrl(`/${queueId}/members`), body);
   }
 }

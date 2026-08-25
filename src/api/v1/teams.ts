@@ -51,11 +51,10 @@ export class TeamsResource extends DixaResource {
     return this._paginate(this.buildUrl());
   }
 
-  /// TODO: delete does not handle body.
   async removeMembers(
     teamId: string,
     body: TeamRemoveMembersBody,
   ): Promise<void> {
-    return this._delete(this.buildUrl(`/${teamId}/agents`));
+    return this._delete(this.buildUrl(`/${teamId}/agents`), body);
   }
 }
